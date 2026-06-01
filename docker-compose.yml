@@ -23,8 +23,8 @@ services:
     volumes:
       - ./config:/config
       - symphony-data:/data
-      # Optional: mount SSH credentials when WORKFLOW.md clones private repositories.
-      # - ~/.ssh:/root/.ssh:ro
+      # Mount SSH credentials for private GitLab/GitHub repositories.
+      - ./.ssh:/root/.ssh:ro
       # Optional: persist Codex config/auth created inside the container.
       # - codex-home:/root/.codex
 

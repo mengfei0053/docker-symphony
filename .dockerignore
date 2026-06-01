@@ -4,6 +4,8 @@
 .env.*
 !.env.example
 config/WORKFLOW.md
+.ssh
+!.ssh/.gitkeep
 data
 logs
 *.tar

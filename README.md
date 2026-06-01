@@ -53,13 +53,23 @@ docker compose down
 
 ## Private repositories
 
-If `hooks.after_create` clones a private repository over SSH, uncomment this volume in `docker-compose.yml`:
+The compose file mounts local `./.ssh` into the container as `/root/.ssh:ro` for private GitLab/GitHub repository access:
 
 ```yaml
-- ~/.ssh:/root/.ssh:ro
+- ./.ssh:/root/.ssh:ro
 ```
 
-Make sure the host has the required deploy key/SSH config and that `SOURCE_REPO_URL` uses an SSH URL.
+Put the required SSH key and `known_hosts` files in `./.ssh`, for example:
+
+```bash
+cp ~/.ssh/id_ed25519 ./.ssh/id_ed25519
+ssh-keyscan gitlab.com >> ./.ssh/known_hosts
+chmod 600 ./.ssh/id_ed25519
+```
+
+Make sure `SOURCE_REPO_URL` uses an SSH URL, for example `git@gitlab.com:your-group/your-project.git`.
+
+Only `.ssh/.gitkeep` is tracked by Git; actual SSH keys are ignored.
 
 ## Runtime data
 
