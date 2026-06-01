@@ -24,7 +24,8 @@ services:
       - ./config:/config
       - symphony-data:/data
       # Mount SSH credentials for private GitLab/GitHub repositories.
-      - ./.ssh:/root/.ssh:ro
+      # The entrypoint copies these into /root/.ssh to fix container-side ownership.
+      - ./.ssh:/host-ssh:ro
       # Optional: persist Codex config/auth created inside the container.
       # - codex-home:/root/.codex
 
