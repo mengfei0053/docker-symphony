@@ -4,4 +4,6 @@
 config/WORKFLOW.md
 data/
 logs/
+*.tar
+*.tar.gz
 .DS_Store

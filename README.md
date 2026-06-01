@@ -7,6 +7,7 @@ This repository contains a Docker deployment wrapper for [openai/symphony](https
 - `Dockerfile` - builds Symphony from GitHub on Ubuntu 24.04.
 - `docker-compose.yml` - starts the service, publishes port `4000`, and persists logs/workspaces in a named volume.
 - `docker/entrypoint.sh` - creates runtime directories and runs `./bin/symphony`.
+- `docker/codex-config.toml` - Codex defaults baked into `/root/.codex/config.toml` in the image.
 - `.env.example` - environment template.
 - `WORKFLOW.example.md` - starter Symphony workflow configuration.
 
@@ -23,7 +24,8 @@ Edit `.env` and `config/WORKFLOW.md`:
 1. Set `LINEAR_API_KEY`.
 2. Set your Linear `project_slug` in `config/WORKFLOW.md`.
 3. Set `SOURCE_REPO_URL` to the repository agents should clone for workspaces.
-4. Adjust `codex.command` if your Codex CLI needs extra config flags.
+4. Set `OPENAI_API_KEY` to the token/key expected by the configured Codex provider.
+5. Adjust `codex.command` if your Codex CLI needs extra config flags.
 
 Build and start:
 
@@ -79,6 +81,21 @@ You can change build args in `docker-compose.yml`:
 - `SYMPHONY_REPO` - Git repository to clone.
 - `SYMPHONY_REF` - branch/tag/commit-ish to build.
 - `CODEX_PACKAGE` - npm package installed globally for the `codex` command.
+
+## Codex defaults
+
+The image copies `docker/codex-config.toml` to `/root/.codex/config.toml` with these defaults:
+
+- `model_provider = "OpenAI"`
+- `model = "gpt-5.5"`
+- `review_model = "gpt-5.5"`
+- `model_reasoning_effort = "xhigh"`
+- `disable_response_storage = true`
+- `network_access = "enabled"`
+- OpenAI-compatible provider base URL: `https://ebeeai.net`
+- `features.goals = true`
+
+If you uncomment the optional `codex-home:/root/.codex` volume in `docker-compose.yml`, that volume will override the baked-in config. Copy `docker/codex-config.toml` into the volume first if you want persistence plus these defaults.
 
 ## Notes
 

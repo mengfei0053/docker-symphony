@@ -51,7 +51,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
 # Install mise, then use Symphony's checked-in mise.toml for Erlang/Elixir versions.
 RUN curl -fsSL https://mise.run | sh \
     && install -m 0755 /root/.local/bin/mise /usr/local/bin/mise \
-    && mkdir -p /opt/mise /opt/symphony /data/logs /data/workspaces /config /usr/local/share/symphony
+    && mkdir -p /opt/mise /opt/symphony /data/logs /data/workspaces /config /usr/local/share/symphony /root/.codex
 
 RUN git clone --depth 1 --branch "${SYMPHONY_REF}" "${SYMPHONY_REPO}" /opt/symphony \
     && cd /opt/symphony/elixir \
@@ -63,6 +63,7 @@ RUN git clone --depth 1 --branch "${SYMPHONY_REF}" "${SYMPHONY_REPO}" /opt/symph
     && mise exec -- mix build
 
 COPY docker/entrypoint.sh /usr/local/bin/symphony-entrypoint
+COPY docker/codex-config.toml /root/.codex/config.toml
 COPY WORKFLOW.example.md /usr/local/share/symphony/WORKFLOW.example.md
 
 RUN chmod +x /usr/local/bin/symphony-entrypoint \

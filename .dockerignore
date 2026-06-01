@@ -6,6 +6,8 @@
 config/WORKFLOW.md
 data
 logs
+*.tar
+*.tar.gz
 node_modules
 _build
 deps
