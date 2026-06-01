@@ -17,6 +17,18 @@ agent:
 codex:
   # The Docker image installs @openai/codex globally. Adjust flags/model for your environment.
   command: "$CODEX_BIN app-server"
+  # Current Codex accepts: untrusted, on-failure, on-request, granular, never.
+  # Use never for unattended Symphony agent runs.
+  approval_policy: never
+  # Disable Codex's own OS sandbox. Codex defaults to "workspace-write", which wraps every
+  # command in bubblewrap (bwrap). In this unprivileged Docker container bwrap cannot create
+  # user namespaces ("bwrap: No permissions to create a new namespace"), so every command
+  # fails before running and agents loop without progress. The container itself is the
+  # isolation boundary (Symphony runs with --i-understand-...-without-the-usual-guardrails),
+  # so Codex runs without its redundant inner sandbox.
+  thread_sandbox: danger-full-access
+  turn_sandbox_policy:
+    type: dangerFullAccess
 server:
   # The entrypoint also passes --port; keep this for explicit config readability.
   port: 4000
