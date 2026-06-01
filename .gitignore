@@ -1,0 +1,7 @@
+.env
+.env.*
+!.env.example
+config/WORKFLOW.md
+data/
+logs/
+.DS_Store

@@ -1,0 +1,33 @@
+services:
+  symphony:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SYMPHONY_REPO: https://github.com/openai/symphony.git
+        SYMPHONY_REF: main
+        CODEX_PACKAGE: "@openai/codex"
+    image: local/openai-symphony:latest
+    container_name: openai-symphony
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      SYMPHONY_WORKFLOW: /config/WORKFLOW.md
+      SYMPHONY_LOGS_ROOT: /data/logs
+      SYMPHONY_PORT: "4000"
+      SYMPHONY_WORKSPACE_ROOT: /data/workspaces
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./config:/config
+      - symphony-data:/data
+      # Optional: mount SSH credentials when WORKFLOW.md clones private repositories.
+      # - ~/.ssh:/root/.ssh:ro
+      # Optional: persist Codex config/auth created inside the container.
+      # - codex-home:/root/.codex
+
+volumes:
+  symphony-data:
+  # codex-home:
