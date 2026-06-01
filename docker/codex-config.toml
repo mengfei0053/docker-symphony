@@ -15,3 +15,9 @@ requires_openai_auth = true
 
 [features]
 goals = true
+
+# Framelink MCP for Figma (https://github.com/GLips/Figma-Context-MCP)
+# Authenticates via FIGMA_API_KEY from the container environment.
+[mcp_servers.figma]
+command = "figma-developer-mcp"
+args = ["--stdio"]

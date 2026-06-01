@@ -20,6 +20,10 @@ if [[ ! -f "$WORKFLOW_PATH" ]]; then
 	cp /usr/local/share/symphony/WORKFLOW.example.md "$WORKFLOW_PATH"
 fi
 
+if [[ -z "${FIGMA_API_KEY:-}" ]]; then
+	echo "Warning: FIGMA_API_KEY is not set; Codex Figma MCP will not authenticate." >&2
+fi
+
 cd "${SYMPHONY_HOME:-/opt/symphony/elixir}"
 
 if [[ "$#" -gt 0 ]]; then

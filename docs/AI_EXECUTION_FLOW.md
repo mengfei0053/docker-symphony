@@ -13,6 +13,7 @@
 | Linear | 任务来源，用户在 Linear 中创建需求或 Bug Issue |
 | Symphony | 编排器，负责轮询 Linear、创建 workspace、调度 AI Agent |
 | Codex app-server | AI 执行引擎，负责读代码、改代码、运行命令 |
+| Figma MCP | 通过 Figma API 读取设计稿布局信息，辅助 UI 实现 |
 | 业务 Git 仓库 | AI 实际要修改的项目代码仓库 |
 | Docker 容器 | 提供 Symphony、Codex、SSH、Git 等运行环境 |
 | Dashboard | 浏览器中的 Symphony 状态看板 |
@@ -39,6 +40,8 @@ Symphony 轮询 Linear 项目
 执行 after_create hook 克隆业务仓库
    ↓
 启动 Codex app-server session
+   ↓
+（可选）调用 Figma MCP 读取设计稿上下文
    ↓
 把 Linear Issue 标题、正文注入 Prompt
    ↓
@@ -232,6 +235,51 @@ requires_openai_auth = true
 - `env_key` 指定从 `OPENAI_API_KEY` 环境变量读取 API Key。
 - `wire_api = "responses"` 表示使用 Responses API 形式。
 
+## 7.1 Figma MCP（Framelink / GLips）
+
+本项目使用 [GLips/Figma-Context-MCP](https://github.com/GLips/Figma-Context-MCP)（npm 包 `figma-developer-mcp`），通过 Figma Personal Access Token 读取设计稿上下文。
+
+镜像内已预装 MCP 命令，Codex 配置如下：
+
+```toml
+[mcp_servers.figma]
+command = "figma-developer-mcp"
+args = ["--stdio"]
+```
+
+`.env` 中配置：
+
+```env
+FIGMA_API_KEY=figd_xxxxxxxx
+```
+
+Token 可在 Figma 账号设置中创建：
+
+```text
+Settings -> Security -> Personal access tokens
+```
+
+建议只授予 Read 权限。Token 通过容器环境变量注入，不会写入 `docker/codex-config.toml`。
+
+### 使用方式
+
+Linear Issue 正文中应包含 Figma 链接，例如：
+
+```text
+设计稿：https://www.figma.com/design/xxx/App?node-id=123-456
+请按该节点实现列表页 UI。
+```
+
+Agent 处理 UI 任务时，Codex 会调用 Figma MCP 工具读取布局、样式等结构化信息，再在 workspace 中修改业务代码。
+
+### 验证 MCP 是否加载
+
+```bash
+docker compose exec symphony codex mcp list
+```
+
+应看到名为 `figma` 的 stdio MCP，状态为 `enabled`。
+
 ## 8. AI 收到的任务 Prompt
 
 `config/WORKFLOW.md` 中 YAML front matter 之后的 Markdown 内容就是发给 AI 的任务模板。
@@ -378,6 +426,14 @@ OK
 
 说明 Codex provider 和 API Key 基本可用。
 
+验证 Figma MCP 是否加载：
+
+```bash
+docker compose exec symphony codex mcp list
+```
+
+应看到 `figma` 条目，且 `FIGMA_API_KEY` 已在 `.env` 中配置。
+
 ## 12. 常见问题
 
 ### 12.1 Issue 在 Backlog，为什么 AI 没有处理？
@@ -441,14 +497,30 @@ SOURCE_REPO_BRANCH=目标分支名
 docker compose up -d --force-recreate symphony
 ```
 
+### 12.6 Figma MCP 无法读取设计稿怎么办？
+
+检查：
+
+1. `.env` 中是否设置了 `FIGMA_API_KEY`。
+2. Token 是否有效，且对目标 Figma 文件有读权限。
+3. Linear Issue 是否包含完整的 Figma file/node 链接。
+4. 容器是否能访问 Figma API（需要外网）。
+5. 运行 `docker compose exec symphony codex mcp list` 确认 `figma` MCP 已启用。
+
+修改 MCP 配置或预装包后需要重建镜像：
+
+```bash
+DOCKER_BUILDKIT=0 docker compose up -d --build symphony
+```
+
 ## 13. 当前关键配置文件
 
 | 文件 | 作用 |
 | --- | --- |
-| `.env` | 运行时环境变量，包含 Linear、OpenAI、业务仓库地址等 |
+| `.env` | 运行时环境变量，包含 Linear、OpenAI、Figma、业务仓库地址等 |
 | `.env.example` | 环境变量模板 |
 | `config/WORKFLOW.md` | Symphony 工作流配置和 AI Prompt |
-| `docker/codex-config.toml` | Codex 模型 provider 配置 |
+| `docker/codex-config.toml` | Codex 模型 provider 与 Figma MCP 配置 |
 | `docker-compose.yml` | Docker 服务、端口、volume、env 配置 |
 | `docker/entrypoint.sh` | 容器启动脚本，处理 SSH、启动 Symphony |
 | `Dockerfile` | 构建 Symphony + Codex 运行镜像 |
@@ -458,7 +530,7 @@ docker compose up -d --force-recreate symphony
 本项目的 AI 执行流程可以概括为：
 
 ```text
-Linear 派任务 → Symphony 调度 → 创建 workspace → clone 业务仓库 → Codex 执行开发 → 人工 review
+Linear 派任务 → Symphony 调度 → 创建 workspace → clone 业务仓库 → Codex 执行开发 → （可选）Figma MCP 读设计 → 人工 review
 ```
 
 `SPEC.md` 推荐作为 AI 的需求规格说明文件，用来约束 AI 开发范围、验收标准和测试要求。对于复杂任务，建议优先编写或引用 `SPEC.md`，再让 AI 执行。

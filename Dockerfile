@@ -6,6 +6,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 ARG SYMPHONY_REPO=https://github.com/openai/symphony.git
 ARG SYMPHONY_REF=main
 ARG CODEX_PACKAGE=@openai/codex
+ARG FIGMA_MCP_PACKAGE=figma-developer-mcp
 
 ENV LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
@@ -44,7 +45,7 @@ RUN apt-get update \
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get update \
     && apt-get install -y --no-install-recommends nodejs \
-    && npm install -g "${CODEX_PACKAGE}" \
+    && npm install -g "${CODEX_PACKAGE}" "${FIGMA_MCP_PACKAGE}" \
     && npm cache clean --force \
     && rm -rf /var/lib/apt/lists/*
 

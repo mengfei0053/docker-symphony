@@ -25,7 +25,8 @@ Edit `.env` and `config/WORKFLOW.md`:
 2. Set your Linear `project_slug` in `config/WORKFLOW.md`.
 3. Set `SOURCE_REPO_URL` to the repository agents should clone for workspaces.
 4. Set `OPENAI_API_KEY` to the token/key expected by the configured Codex provider.
-5. Adjust `codex.command` if your Codex CLI needs extra config flags.
+5. Optionally set `FIGMA_API_KEY` so Codex can read Figma designs through the bundled Framelink MCP.
+6. Adjust `codex.command` if your Codex CLI needs extra config flags.
 
 Build and start:
 
@@ -104,6 +105,9 @@ The image copies `docker/codex-config.toml` to `/root/.codex/config.toml` with t
 - `network_access = "enabled"`
 - OpenAI-compatible provider base URL: `https://ebeeai.net`
 - `features.goals = true`
+- Framelink Figma MCP (`figma-developer-mcp`) enabled as `mcp_servers.figma`
+
+Set `FIGMA_API_KEY` in `.env` to a Figma Personal Access Token. Linear issues should include Figma file or node links when UI work depends on a design.
 
 If you uncomment the optional `codex-home:/root/.codex` volume in `docker-compose.yml`, that volume will override the baked-in config. Copy `docker/codex-config.toml` into the volume first if you want persistence plus these defaults.
 
